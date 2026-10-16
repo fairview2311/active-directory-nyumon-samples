@@ -1,0 +1,23 @@
+# --- section 01: 社員の OU の人を一覧にする（読むだけ）
+Get-ADUser -Filter * -SearchBase "OU=社員,DC=corp,DC=example,DC=com" | Format-Table Name,SamAccountName,Enabled
+
+# --- section 02: 練習用ファイルを C:\work にダウンロードする（1行ずつ）
+New-Item -ItemType Directory C:\work
+cd C:\work
+Invoke-WebRequest https://github.com/fairview2311/active-directory-nyumon-samples/archive/refs/heads/main.zip -OutFile samples.zip
+Expand-Archive samples.zip -DestinationPath .
+Copy-Item .\active-directory-nyumon-samples-main\ch12\* .
+
+# --- section 03〜04: 登録せずに試す
+.\add-users.ps1 -WhatIf
+notepad employees.csv
+
+# --- section 05: 本当に登録して、数を確かめる
+.\add-users.ps1
+(Get-ADUser -Filter * -SearchBase "OU=社員,DC=corp,DC=example,DC=com").Count
+foreach ($g in 'G-営業部','G-経理部','G-総務部') { "$g " + (Get-ADGroupMember $g).Count }
+
+# --- section 06: 退職する人をまとめて無効にする
+.\disable-users.ps1 -WhatIf
+.\disable-users.ps1
+Search-ADAccount -AccountDisabled -SearchBase "OU=社員,DC=corp,DC=example,DC=com" | Format-Table Name,Enabled
